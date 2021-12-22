@@ -4,10 +4,10 @@ from tink import daead
 from tink import cleartext_keyset_handle
 
 database = 'it is my data'
-secret_key = 'xxx' # use Tink to generate your secret key here
-#salt1 = bcrypt.gensalt()
-salt1 = b'$2b$12$c8rMM5Rh2FF47dEiJmqW7O'
-print("my salt : " , salt1)
+
+def generSalt():
+  secret_key=bcrypt.gensalt()
+  return secret_key
 
 #encryption_machine
 daead.register()
@@ -32,7 +32,7 @@ def save_to_database(user, pwd):
   # format: user, hashed_password
   # for example: file.write(user, hash_password(pwd))
 
-  hashed_password, salt = hash_password(pwd,salt1)
+  hashed_password, salt = hash_password(pwd,generSalt())
   encrypted_password = encryption_machine(hashed_password)
   print("my hashed_password is " , hashed_password)
   print("my salt is " , salt)
@@ -50,18 +50,16 @@ def check_password(user, pwd):
       print(encrypted_password)
       print(salt)
       if user == user_in_database:
-        hashed_password, u= hash_password(pwd, salt1)
+        hashed_password, u= hash_password(pwd, bytes.fromhex(salt))
         # and check for authentication
         encrypted_user_password = encryption_machine(hashed_password)
         if encrypted_user_password == bytes.fromhex(encrypted_password):
           return True
   return False
 
-
-print(hash_password(database, salt1)) #c'est good
-a, b=hash_password(database, salt1)
-print("a is " , a)
-print("b is " , b)
+a, b=hash_password(database, generSalt())
+print("hashed_password is " , a)
+print("mt salt is " , b)
 print("my encrypted_password who save  is " , encryption_machine(a)) #c'est good
 
 f = save_to_database('lilyan',database)
